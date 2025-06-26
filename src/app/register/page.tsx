@@ -8,35 +8,46 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { toast } from 'sonner';
+
+const registerSchema = z.object({
+  email: z.string().email({ message: "Email inválido" }),
+  password: z.string().min(6, { message: "A senha deve ter pelo menos 6 caracteres" }),
+});
+
+type RegisterFormInputs = z.infer<typeof registerSchema>;
+
 export default function RegisterPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+  const { register, handleSubmit, formState: { errors } } = useForm<RegisterFormInputs>({
+    resolver: zodResolver(registerSchema),
+  });
 
+  const onSubmit = async (data: RegisterFormInputs) => {
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(data),
       });
 
-      const data = await response.json();
+      const responseData = await response.json();
 
       if (response.ok) {
+        toast.success('Usuário registrado com sucesso!');
         router.push('/login');
       } else {
-        setError(data.message || 'Registration failed');
+        toast.error(responseData.message || 'Erro ao registrar usuário.');
       }
     } catch (err) {
       console.error('Registration error:', err);
-      setError('An unexpected error occurred.');
+      toast.error('Um erro inesperado ocorreu.');
     }
   };
 
@@ -47,32 +58,29 @@ export default function RegisterPage() {
           <CardTitle className="text-2xl text-center">Registro</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="m@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+                {...register("email")}
               />
+              {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
+                {...register("password")}
               />
+              {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
             </div>
             <Button type="submit" className="w-full">
               Registrar
             </Button>
-            {error && <p className="text-red-500 text-center text-sm mt-2">{error}</p>}
             <p className="text-center text-sm text-muted-foreground mt-4">
               Já tem uma conta?{" "}
               <Link href="/login" className="underline">

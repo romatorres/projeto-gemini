@@ -10,38 +10,49 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { toast } from 'sonner';
+
+const loginSchema = z.object({
+  email: z.string().email({ message: "Email inválido" }),
+  password: z.string().min(6, { message: "A senha deve ter pelo menos 6 caracteres" }),
+});
+
+type LoginFormInputs = z.infer<typeof loginSchema>;
+
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { setToken } = useAuthStore();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+  const { register, handleSubmit, formState: { errors } } = useForm<LoginFormInputs>({
+    resolver: zodResolver(loginSchema),
+  });
 
+  const onSubmit = async (data: LoginFormInputs) => {
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(data),
       });
 
-      const data = await response.json();
+      const responseData = await response.json();
 
       if (response.ok) {
-        setToken(data.token);
-        Cookies.set('token', data.token, { expires: 1 }); // Armazena o token por 1 dia
+        setToken(responseData.token);
+        Cookies.set('token', responseData.token, { expires: 1 }); // Armazena o token por 1 dia
+        toast.success('Login realizado com sucesso!');
         router.push('/dashboard');
       } else {
-        setError(data.message || 'Login failed');
+        toast.error(responseData.message || 'Erro ao fazer login.');
       }
     } catch (err) {
       console.error('Login error:', err);
-      setError('An unexpected error occurred.');
+      toast.error('Um erro inesperado ocorreu.');
     }
   };
 
@@ -52,32 +63,29 @@ export default function LoginPage() {
           <CardTitle className="text-2xl text-center">Login</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="m@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+                {...register("email")}
               />
+              {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
+                {...register("password")}
               />
+              {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
             </div>
             <Button type="submit" className="w-full">
               Login
             </Button>
-            {error && <p className="text-red-500 text-center text-sm mt-2">{error}</p>}
             <p className="text-center text-sm text-muted-foreground mt-4">
               Não tem uma conta?{" "}
               <Link href="/register" className="underline">
