@@ -22,18 +22,6 @@ export default function OverviewPage() {
           <p>Conteúdo exclusivo para administradores.</p>
         </div>
       )}
-
-      <Button
-        variant={"secondary"}
-        onClick={() => {
-          clearToken();
-          Cookies.remove("token");
-          router.push("/login");
-        }}
-        className="mt-4"
-      >
-        Logout
-      </Button>
     </div>
   );
 }
