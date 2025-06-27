@@ -1,23 +1,25 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { useAuthStore } from '@/store/authStore';
-import Cookies from 'js-cookie';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useAuthStore } from "@/store/authStore";
+import Cookies from "js-cookie";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { toast } from 'sonner';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { toast } from "sonner";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Email inválido" }),
-  password: z.string().min(6, { message: "A senha deve ter pelo menos 6 caracteres" }),
+  password: z
+    .string()
+    .min(6, { message: "A senha deve ter pelo menos 6 caracteres" }),
 });
 
 type LoginFormInputs = z.infer<typeof loginSchema>;
@@ -26,16 +28,20 @@ export default function LoginPage() {
   const router = useRouter();
   const { setToken } = useAuthStore();
 
-  const { register, handleSubmit, formState: { errors } } = useForm<LoginFormInputs>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormInputs>({
     resolver: zodResolver(loginSchema),
   });
 
   const onSubmit = async (data: LoginFormInputs) => {
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
       });
@@ -44,15 +50,15 @@ export default function LoginPage() {
 
       if (response.ok) {
         setToken(responseData.token);
-        Cookies.set('token', responseData.token, { expires: 1 }); // Armazena o token por 1 dia
-        toast.success('Login realizado com sucesso!');
-        router.push('/dashboard');
+        Cookies.set("token", responseData.token, { expires: 1 }); // Armazena o token por 1 dia
+        toast.success("Login realizado com sucesso!");
+        router.push("/dashboard");
       } else {
-        toast.error(responseData.message || 'Erro ao fazer login.');
+        toast.error(responseData.message || "Erro ao fazer login.");
       }
     } catch (err) {
-      console.error('Login error:', err);
-      toast.error('Um erro inesperado ocorreu.');
+      console.error("Login error:", err);
+      toast.error("Um erro inesperado ocorreu.");
     }
   };
 
@@ -69,19 +75,26 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="m@example.com"
+                placeholder="mome@example.com"
                 {...register("email")}
               />
-              {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+              {errors.email && (
+                <p className="text-red-500 text-sm">{errors.email.message}</p>
+              )}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
+                placeholder="******"
                 {...register("password")}
               />
-              {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
+              {errors.password && (
+                <p className="text-red-500 text-sm">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
             <Button type="submit" className="w-full">
               Login
