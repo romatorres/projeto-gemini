@@ -1,11 +1,18 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
-import { Menu } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetClose,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Menu } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface SidebarLinkProps {
   href: string;
@@ -53,13 +60,23 @@ export function Sidebar() {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="w-64 p-4 pt-12">
-          <h2 className="text-2xl font-semibold mb-6">Dashboard</h2>
-          <nav className="flex flex-col space-y-2">
-            <SidebarLink href="/dashboard">Visão Geral</SidebarLink>
-            <SidebarLink href="/dashboard/settings">Configurações</SidebarLink>
-            <SidebarLink href="/dashboard/profile">Perfil</SidebarLink>
-            {/* Adicione mais links aqui */}
-          </nav>
+          <SheetHeader>
+            <SheetTitle>Dashboard</SheetTitle>
+            <nav className="flex flex-col space-y-2">
+              <SheetClose asChild>
+                <SidebarLink href="/dashboard">Visão Geral</SidebarLink>
+              </SheetClose>
+              <SheetClose asChild>
+                <SidebarLink href="/dashboard/settings">
+                  Configurações
+                </SidebarLink>
+              </SheetClose>
+              <SheetClose asChild>
+                <SidebarLink href="/dashboard/profile">Perfil</SidebarLink>
+              </SheetClose>
+              {/* Adicione mais links aqui */}
+            </nav>
+          </SheetHeader>
         </SheetContent>
       </Sheet>
     </div>

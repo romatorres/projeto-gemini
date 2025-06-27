@@ -1,14 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuthStore } from "@/store/authStore";
 import Cookies from "js-cookie";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,9 +15,10 @@ import * as z from "zod";
 import { toast } from "sonner";
 
 const loginSchema = z.object({
-  email: z.string().email({ message: "Email inválido" }),
+  email: z.string().min(1, { message: "O email é obrigatório." }).email({ message: "Email inválido" }),
   password: z
     .string()
+    .min(1, { message: "A senha é obrigatória." })
     .min(6, { message: "A senha deve ter pelo menos 6 caracteres" }),
 });
 
@@ -28,12 +28,12 @@ export default function LoginPage() {
   const router = useRouter();
   const { setToken } = useAuthStore();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormInputs>({
+  const form = useForm<LoginFormInputs>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
   });
 
   const onSubmit = async (data: LoginFormInputs) => {
@@ -69,43 +69,45 @@ export default function LoginPage() {
           <CardTitle className="text-2xl text-center">Login</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="mome@example.com"
-                {...register("email")}
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input placeholder="m@example.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-              {errors.email && (
-                <p className="text-red-500 text-sm">{errors.email.message}</p>
-              )}
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="******"
-                {...register("password")}
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="******" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-              {errors.password && (
-                <p className="text-red-500 text-sm">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
-            <Button type="submit" className="w-full">
-              Login
-            </Button>
-            <p className="text-center text-sm text-muted-foreground mt-4">
-              Não tem uma conta?{" "}
-              <Link href="/register" className="underline">
-                Registre-se
-              </Link>
-            </p>
-          </form>
+              <Button type="submit" className="w-full">
+                Login
+              </Button>
+              <p className="text-center text-sm text-muted-foreground mt-4">
+                Não tem uma conta?{" "}
+                <Link href="/register" className="underline">
+                  Registre-se
+                </Link>
+              </p>
+            </form>
+          </Form>
         </CardContent>
       </Card>
     </div>
